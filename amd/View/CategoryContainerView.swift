@@ -35,7 +35,7 @@ struct CategoryContainerView: View {
             // --- المحتوى ---
             ZStack {
                 RoundedRectangle(cornerRadius: 25)
-                    .fill(Color(.systemGray6))
+                    .fill(Color(.systemGray))
                 
                 VStack {
                     if isExpanded {

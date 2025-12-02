@@ -19,7 +19,7 @@ struct VideoCardView: View {
                     VideoPlayer(player: player)
                         .disabled(true) // نمنع لمس الفيديو عشان السكرول
                 } else {
-                    Color(.systemGray4)
+                    Color(.systemGray)
                     Image(systemName: "video.slash")
                         .foregroundColor(.gray)
                 }
@@ -85,29 +85,30 @@ struct VideoCardView: View {
     
     // 👇 دالة الذكاء: تقرر هل نشغل الفيديو ولا لا
     func checkVisibility(midY: CGFloat) {
-        let screenHeight = UIScreen.main.bounds.height
-        let screenCenter = screenHeight / 2
+//        let screenHeight = UIScreen.main.bounds.height
+//        let screenCenter = screenHeight / 2
         
         // المسافة المسموحة (منطقة الوسط) - مثلاً 150 نقطة فوق وتحت النص
-        let threshold: CGFloat = 150
+//        let threshold: CGFloat = 150
         
         // هل الكرت قريب من نص الشاشة؟
-        let isCentered = abs(screenCenter - midY) < threshold
+//        let isCentered = abs(screenCenter - midY) < threshold
         
-        if isCentered {
+//        if isCentered {
             if !isPlaying {
                 player?.play()
                 isPlaying = true
             }
-        } else {
+//        } else {
             if isPlaying {
                 player?.pause()
                 isPlaying = false
             }
         }
     }
-}
+//}
 
 #Preview {
     VideoCardView(video: VideoItem(description: "تجرية", imageName: "demo1", isFavorite: false))
 }
+
