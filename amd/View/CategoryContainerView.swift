@@ -26,7 +26,7 @@ struct CategoryContainerView: View {
                         Image(systemName: "chevron.left")
                             .font(.title2)
                             .foregroundColor(.orange)
-                            .rotationEffect(isExpanded ? .degrees(-90) : .degrees(0))
+                            .rotationEffect(isExpanded ? .degrees(90) : .degrees(0))
                     }
                 }
             }
@@ -42,7 +42,6 @@ struct CategoryContainerView: View {
                         // الوضع المفتوح
                         VStack(spacing: 20) {
                             ForEach(category.items) { video in
-                                // 👇 2. هنا نربط زر القلب بالدالة الموجودة في الفيو مودل
                                 VideoCardView(video: video, onFavoriteTapped: {
                                     viewModel.toggleFavorite(for: video.id)
                                 })
@@ -57,7 +56,6 @@ struct CategoryContainerView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 15) {
                                 ForEach(category.items) { video in
-                                    // 👇 2. ونفس الشيء هنا
                                     VideoCardView(video: video, onFavoriteTapped: {
                                         viewModel.toggleFavorite(for: video.id)
                                     })

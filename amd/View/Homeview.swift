@@ -14,7 +14,6 @@ struct HomeView: View {
                     HStack {
                         CircleButton(icon:"chevron.backward")
                         Spacer()
-                        // الأزرار الجديدة (يسار - شكل فقط)
                         HStack(spacing: 10) {
                             CircleButton(icon: "plus")
                             CircleButton(icon: "mic")
