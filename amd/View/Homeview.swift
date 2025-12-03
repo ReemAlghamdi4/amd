@@ -3,6 +3,7 @@ import SwiftUI
 struct HomeView: View {
     @StateObject var viewModel = PlaceViewModel()
     @State private var selectedCategoryId: UUID?
+    @Environment(\.dismiss) private var dismiss
 
     var body: some View {
         NavigationStack {
@@ -12,13 +13,14 @@ struct HomeView: View {
                     
                     // أ. العنوان والأزرار العلوية
                     HStack {
-                        CircleButton(icon:"chevron.backward")
+                        CircleButton(icon:"chevron.backward") {
+                            dismiss()
+                        }
                         Spacer()
                         // الأزرار الجديدة (يسار - شكل فقط)
                         HStack(spacing: 10) {
-                            CircleButton(icon: "plus")
-                            CircleButton(icon: "mic")
-                            
+                            CircleButton(icon: "plus") { }
+                            CircleButton(icon: "mic") { }
                         }
                         
                         
@@ -105,8 +107,9 @@ struct HomeView: View {
 // --- تصميم الأزرار الدائرية العلوية ---
 struct CircleButton: View {
     let icon: String
+    var action: () -> Void = {}
     var body: some View {
-        Button(action: {}) { // حالياً ما تسوي شي
+        Button(action: action) {
             Image(systemName: icon)
                 .font(.title3)
                 .foregroundColor(.white) // اللون السماوي
