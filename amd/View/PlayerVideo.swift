@@ -50,8 +50,9 @@ struct PlayerVideo: View {
             
             // ---- TIME LABELS ----
             HStack {
-                Spacer()
+               // Spacer()
                 Text(formatTime(currentTime)).font(.caption2)
+                Spacer()
                 Text(formatTime(videoDuration)).font(.caption2)
             }
                 
