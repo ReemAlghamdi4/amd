@@ -41,7 +41,7 @@ struct HomeView: View {
                             .textFieldStyle(.plain)
                     }
                     .padding(12)
-                    .background(Color(.systemGray6))
+                    .background(Color(.gray))
                     .cornerRadius(17)
                     .padding(.horizontal)
                     
