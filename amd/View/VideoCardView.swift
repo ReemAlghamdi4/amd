@@ -63,7 +63,7 @@ struct VideoCardView: View {
         // 2. تجهيز الفيديو أول مرة (بدون تشغيل)
         .onAppear {
             if player == nil {
-                if let url = Bundle.main.url(forResource: video.imageName, withExtension: "mp4") {
+                if let url = Bundle.main.url(forResource: video.imageName, withExtension: "mov") {
                     let newPlayer = AVPlayer(url: url)
                     newPlayer.isMuted = true // كتم الصوت
                     

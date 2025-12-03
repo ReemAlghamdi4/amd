@@ -11,10 +11,12 @@ class PlaceViewModel: ObservableObject {
     init() {
         // ... (نفس بياناتك الوهمية السابقة بدون تغيير) ...
         let video1 = VideoItem(description: "waiting", imageName: "demo1", isFavorite: false)
-        let video2 = VideoItem(description: "غرفة الانتظار", imageName: "demo1", isFavorite: true)
-        let receptionCategory = PlaceCategory(name: "استقبال", icon: "🏥", items: [video1, video2])
-        let earCategory = PlaceCategory(name: "أذن", icon: "👂", items: [video1])
-        
+        let video2 = VideoItem(description: "غرفة الانتظار", imageName: "demo2", isFavorite: true)
+        let video3 = VideoItem(description: "غرفة الانتظار", imageName: "demo3", isFavorite: true)
+
+        let receptionCategory = PlaceCategory(name: "استقبال", icon: "🏥", items: [video1, video2,video3])
+        let earCategory = PlaceCategory(name: "أذن", icon: "👂", items: [video2])
+
         self.place = Place(name: "مستشفى", categories: [receptionCategory, earCategory])
     }
     

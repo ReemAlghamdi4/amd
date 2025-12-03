@@ -1,30 +1,55 @@
 import SwiftUI
 import AVKit
-import AVFoundation
 
 struct PlayerVideo: View {
-    let player: AVPlayer
-    @State private var isFavorite = false
+    // نستقبل الفيديو والفيو مودل
+    let video: VideoItem
+    @ObservedObject var viewModel: PlaceViewModel
+    
+    // مشغل الفيديو
+    @State private var player: AVPlayer?
+    
+    // متغيرات التحكم بالوقت
     @State private var isPlaying = false
     @State private var videoDuration: Double = 0
     @State private var currentTime: Double = 0
     @State private var timeObserver: Any?
+    
+    // للتحقق من المفضلة بشكل مباشر
+    var isFavorite: Bool {
+        // نبحث في الفيو مودل هل هذا الفيديو مفضل أم لا
+        return viewModel.favoriteVideos.contains(where: { $0.id == video.id })
+    }
+    
     var body: some View {
         VStack(spacing: 24) {
             
+            // المقبض العلوي (Grab Handle)
             Capsule()
                 .fill(Color.gray.opacity(0.4))
                 .frame(width: 60, height: 5)
                 .padding(.top, 8)
             
-            // --- VIDEO WITH NO SYSTEM CONTROLS ---
-            VideoPlayer(player: player)
-                .frame(width: 366, height: 304)
-                .clipShape(RoundedRectangle(cornerRadius: 24))
-                .allowsHitTesting(false)   // this prevents showing controls but keeps video working
+            // --- مشغل الفيديو ---
+            ZStack {
+                Color.black
+                if let player = player {
+                    VideoPlayer(player: player)
+                        .allowsHitTesting(false) // يخفي تحكم النظام الافتراضي
+                }
+            }
+            .frame(height: 304) // العرض يأخذ الشاشة تلقائياً
+            .clipShape(RoundedRectangle(cornerRadius: 24))
+            .padding(.horizontal)
             
+            // --- العنوان والمفضلة ---
             HStack {
-                Button(action: { isFavorite.toggle() }) {
+                // زر المفضلة
+                Button(action: {
+                    withAnimation {
+                        viewModel.toggleFavorite(for: video.id)
+                    }
+                }) {
                     Image(systemName: isFavorite ? "heart.fill" : "heart")
                         .font(.system(size: 22))
                         .foregroundColor(isFavorite ? .red : .gray)
@@ -32,122 +57,153 @@ struct PlayerVideo: View {
                 
                 Spacer()
                 
-                Text("ألم في الاذن")
-                    .font(.custom("IBMPlexSansArabic-Regular", size: 16))
+                // عنوان الفيديو (من البيانات)
+                Text(video.description)
+                    .font(.custom("IBMPlexSansArabic-Bold", size: 20))
                     .foregroundColor(.primary)
             }
+            .padding(.horizontal)
             
-
-            Slider(value: Binding(
-                get: { currentTime },
-                set: { newValue in
-                    currentTime = newValue
-                    let seek = CMTime(seconds: newValue, preferredTimescale: 600)
-                    player.seek(to: seek)
-                }
-            ), in: 0...videoDuration
-            ).accentColor(.blue4)
-            
-            // ---- TIME LABELS ----
-            HStack {
-               // Spacer()
-                Text(formatTime(currentTime)).font(.caption2)
-                Spacer()
-                Text(formatTime(videoDuration)).font(.caption2)
-            }
+            // --- شريط التمرير (Slider) ---
+            VStack(spacing: 5) {
+                Slider(value: Binding(
+                    get: { currentTime },
+                    set: { newValue in
+                        currentTime = newValue
+                        let seek = CMTime(seconds: newValue, preferredTimescale: 600)
+                        player?.seek(to: seek)
+                    }
+                ), in: 0...videoDuration)
+                .accentColor(Color("blue4")) // تأكد أن اللون مضاف في Assets
                 
-                // --- CUSTOM PLAYBACK CONTROLS ---
+                // توقيت الفيديو
+                HStack {
+                    Text(formatTime(currentTime)).font(.caption2)
+                    Spacer()
+                    Text(formatTime(videoDuration)).font(.caption2)
+                }
+                .foregroundColor(.gray)
+            }
+            .padding(.horizontal)
+            
+            // --- أزرار التحكم (Custom Controls) ---
             HStack(spacing: 40) {
-                // --- Backward 10s ---
+                // إرجاع 10 ثواني
                 Button {
-                    let newTime = max(currentTime - 10, 0) // prevent negative time
+                    let newTime = max(currentTime - 10, 0)
                     let seekTime = CMTime(seconds: newTime, preferredTimescale: 600)
-                    player.seek(to: seekTime)
+                    player?.seek(to: seekTime)
                     currentTime = newTime
                 } label: {
                     Image(systemName: "backward.fill")
-                        .foregroundColor(Color.blue4)
                         .font(.title2)
+                        .foregroundColor(Color("blue4"))
                         .frame(width: 40, height: 40)
-//                        .background(
-//                            Circle()
-//                                .fill(Color.blue4.opacity(0.2))
-//                        )
                 }
 
-                // --- Play / Pause ---
+                // تشغيل / إيقاف مؤقت
                 Button {
                     if isPlaying {
-                        player.pause()
+                        player?.pause()
                     } else {
-                        player.play()
+                        player?.play()
                     }
                     isPlaying.toggle()
                 } label: {
                     Image(systemName: isPlaying ? "pause.fill" : "play.fill")
-                        .foregroundColor(Color.blue4)
                         .font(.title2)
-                        .frame(width: 50, height: 50)
+                        .foregroundColor(Color("blue4"))
+                        .frame(width: 60, height: 60)
                         .background(
-                            Circle()
-                                .fill(Color.blue4.opacity(0.3))
+                            Circle().fill(Color("blue4").opacity(0.2))
                         )
-                        .shadow(radius: 3)
                 }
 
-                // --- Forward 10s ---
+                // تقديم 10 ثواني
                 Button {
-                    let newTime = min(currentTime + 10, videoDuration) // prevent overflow
+                    let newTime = min(currentTime + 10, videoDuration)
                     let seekTime = CMTime(seconds: newTime, preferredTimescale: 600)
-                    player.seek(to: seekTime)
+                    player?.seek(to: seekTime)
                     currentTime = newTime
                 } label: {
                     Image(systemName: "forward.fill")
-                        .foregroundColor(Color.blue4)
                         .font(.title2)
-
-                      
+                        .foregroundColor(Color("blue4"))
+                        .frame(width: 40, height: 40)
                 }
             }
-
-                .font(.title2)
-                
-                VStack(alignment: .center, spacing: 8) {
-                    Text("وصف المقطع")
-                        .font(.custom("IBMPlexSansArabic-Regular", size: 16))
-                    
-                    Text("أحس بألم في أذني من يومين، الألم مزعج، مرات قوي ومرات يخف، وإذا لمستها يزيد أكثر...")
-                        .font(.custom("IBMPlexSansArabic-Regular", size: 16))
-                        .multilineTextAlignment(.center)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
             
-            .onAppear {
-                        // get duration
-                        if let duration = player.currentItem?.asset.duration {
-                            videoDuration = CMTimeGetSeconds(duration)
-                        }
-                        
-                        // update current time periodically
-                        timeObserver = player.addPeriodicTimeObserver(
-                            forInterval: CMTime(seconds: 0.3, preferredTimescale: 600),
-                            queue: .main
-                        ) { time in
-                            currentTime = CMTimeGetSeconds(time)
-                        }
-                    }
-        }.padding()
+            Divider().padding(.vertical)
+            
+            // --- الوصف والشرح ---
+            VStack(alignment: .trailing, spacing: 8) {
+                Text("وصف المقطع")
+                    .font(.custom("IBMPlexSansArabic-Bold", size: 18))
+                
+                // هنا الوصف الطويل (حالياً ثابت، ممكن تضيف خاصية longDescription للمودل لاحقاً)
+                Text((video.description) )
+                    .font(.custom("IBMPlexSansArabic-Regular", size: 16))
+                    .multilineTextAlignment(.trailing)
+                    .foregroundColor(.secondary)
+                    .lineSpacing(5)
+            }
+            .frame(maxWidth: .infinity, alignment: .trailing)
+            .padding(.horizontal)
+            
+            Spacer()
+        }
+        .environment(\.layoutDirection, .leftToRight) // السلايدر يحتاج اتجاه انجليزي عشان يضبط، لكن النصوص بنضبطها يدوياً
+        .background(Color(.systemBackground))
+        // تجهيز المشغل عند فتح الصفحة
+        .onAppear {
+            setupPlayer()
+        }
+        // تنظيف الذاكرة عند الإغلاق
+        .onDisappear {
+            player?.pause()
+            player = nil
+        }
     }
+    
+    // دالة تنسيق الوقت (0:00)
     func formatTime(_ seconds: Double) -> String {
         guard seconds.isFinite else { return "0:00" }
         let mins = Int(seconds) / 60
         let secs = Int(seconds) % 60
         return String(format: "%d:%02d", mins, secs)
     }
-}
-    #Preview {
-        PlayerVideo(player: AVPlayer(url: URL(string: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4")!))
+    
+    // دالة تجهيز الفيديو
+    func setupPlayer() {
+        if let url = Bundle.main.url(forResource: video.imageName, withExtension: "mov") {
+            let newPlayer = AVPlayer(url: url)
+            self.player = newPlayer
+            
+            // جلب مدة الفيديو
+            Task {
+                if let duration = try? await newPlayer.currentItem?.asset.load(.duration) {
+                    self.videoDuration = CMTimeGetSeconds(duration)
+                }
+            }
+            
+            // مراقبة وقت التشغيل للسلايدر
+            timeObserver = newPlayer.addPeriodicTimeObserver(
+                forInterval: CMTime(seconds: 0.1, preferredTimescale: 600),
+                queue: .main
+            ) { time in
+                self.currentTime = CMTimeGetSeconds(time)
+            }
+            
+            newPlayer.play()
+            isPlaying = true
+        }
     }
+}
 
+
+#Preview {
+    PlayerVideo(
+        video: VideoItem(description: "تجربة", imageName: "demo1", isFavorite: true),
+        viewModel: PlaceViewModel()
+    )
+}
