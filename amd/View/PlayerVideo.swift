@@ -24,11 +24,7 @@ struct PlayerVideo: View {
     var body: some View {
         VStack(spacing: 24) {
             
-            // المقبض العلوي (Grab Handle)
-            Capsule()
-                .fill(Color.gray.opacity(0.4))
-                .frame(width: 60, height: 5)
-                .padding(.top, 8)
+ Spacer()
             
             // --- مشغل الفيديو ---
             ZStack {

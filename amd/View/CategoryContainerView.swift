@@ -6,6 +6,9 @@ struct CategoryContainerView: View {
     
     @State private var isExpanded: Bool = false
     
+    // هذا المتغير اللي راح يرسل الفيديو للصفحة الرئيسية
+    var onVideoSelect: (VideoItem) -> Void
+
     var body: some View {
         VStack(spacing: 15) {
             
@@ -35,30 +38,54 @@ struct CategoryContainerView: View {
             // --- المحتوى ---
             ZStack {
                 RoundedRectangle(cornerRadius: 25)
-                    .fill(Color(.gray))
-                
+                    .fill(.ultraThinMaterial) // 1. خامة الزجاج الضبابية
+                                        .shadow(color: .black.opacity(0.05), radius: 10, x: 0, y: 5) // 2. ظل ناعم يرفعه عن الخلفية
+                                        .overlay(
+                                            // 3. الإطار اللامع (تأثير انعكاس الضوء)
+                                            RoundedRectangle(cornerRadius: 25)
+                                                .strokeBorder(
+                                                    LinearGradient(
+                                                        stops: [
+                                                            .init(color: .filter.opacity(0.6), location: 0.0), // لمعة قوية بالزاوية اليسرى فوق
+                                                            .init(color: .filter.opacity(0.1), location: 0.4),
+                                                            .init(color: .filter.opacity(0.0), location: 1.0)  // تختفي تحت يمين
+                                                        ],
+                                                        startPoint: .topLeading,
+                                                        endPoint: .bottomTrailing
+                                                    ),
+                                                    lineWidth: 1.5
+                                                )
+                                        )
                 VStack {
                     if isExpanded {
-                        // الوضع المفتوح
+                        // 1. الوضع المفتوح (VStack)
                         VStack(spacing: 20) {
                             ForEach(category.items) { video in
                                 VideoCardView(video: video, onFavoriteTapped: {
                                     viewModel.toggleFavorite(for: video.id)
                                 })
                                 .frame(maxWidth: .infinity)
+                                // 👇 التعديل الأول: إضافة الضغط هنا
+                                .onTapGesture {
+                                    onVideoSelect(video)
+                                }
                             }
                         }
                         .padding(20)
                         .transition(.opacity)
                         
                     } else {
-                        // الوضع المغلق
+                        // 2. الوضع المغلق (ScrollView)
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 15) {
                                 ForEach(category.items) { video in
                                     VideoCardView(video: video, onFavoriteTapped: {
                                         viewModel.toggleFavorite(for: video.id)
                                     })
+                                    // 👇 التعديل الثاني: إضافة الضغط هنا أيضاً
+                                    .onTapGesture {
+                                        onVideoSelect(video)
+                                    }
                                 }
                             }
                             .padding(20)
