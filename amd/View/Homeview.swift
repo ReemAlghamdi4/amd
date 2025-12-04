@@ -17,7 +17,6 @@ struct HomeView: View {
                             dismiss()
                         }
                         Spacer()
-                        // الأزرار الجديدة (يسار - شكل فقط)
                         HStack(spacing: 10) {
                             CircleButton(icon: "plus") { }
                             CircleButton(icon: "mic") { }
@@ -43,7 +42,7 @@ struct HomeView: View {
                             .textFieldStyle(.plain)
                     }
                     .padding(12)
-                    .background(Color(.systemGray))
+                    .background(Color(.gray))
                     .cornerRadius(17)
                     .padding(.horizontal)
                     
