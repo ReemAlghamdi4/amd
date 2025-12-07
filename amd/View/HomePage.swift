@@ -46,8 +46,8 @@ struct HomePage: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Single full-screen background to avoid seams
-                BackgroundBlobs()
+                // Use the onboarding background here
+                MovingSoftBackground()
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
@@ -62,7 +62,7 @@ struct HomePage: View {
                                     .font(.system(size: 20))
                             }
                         }
-                        .padding(.leading, 20)
+                        .padding(.leading, 36)
                         .padding(.top, 16)
 
                         Spacer()
@@ -99,6 +99,7 @@ struct HomePage: View {
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                     .padding(.horizontal, 30)
+                    .padding(.trailing, 12)
 
                     Spacer()
 
@@ -132,66 +133,7 @@ struct HomePage: View {
     }
 }
 
-// A dedicated background view that fills the screen and avoids seams
-private struct BackgroundBlobs: View {
-    var body: some View {
-        GeometryReader { proxy in
-            let h = proxy.size.height
-            ZStack {
-                // Base soft vertical wash
-                LinearGradient(
-                    colors: [
-                        .white,
-                        Color.lightTeal.opacity(0.06),
-                        .white
-                    ],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-
-                // Top-right glow
-                RadialGradient(
-                    gradient: Gradient(colors: [
-                        Color.lightTeal.opacity(0.85),
-                        Color.lightTeal.opacity(0.001) // not fully 0 to prevent banding seams
-                    ]),
-                    center: .topTrailing,
-                    startRadius: 30,
-                    endRadius: max(560, h * 0.6)
-                )
-                .offset(x: 70, y: -120)
-
-                // Center bloom
-                RadialGradient(
-                    gradient: Gradient(colors: [
-                        Color.lightTeal.opacity(0.30),
-                        Color.lightTeal.opacity(0.001)
-                    ]),
-                    center: .center,
-                    startRadius: 20,
-                    endRadius: max(520, h * 0.55)
-                )
-                .offset(x: 0, y: 40)
-
-                // Bottom-left fade
-                RadialGradient(
-                    gradient: Gradient(colors: [
-                        Color.lightTeal.opacity(0.28),
-                        Color.lightTeal.opacity(0.001)
-                    ]),
-                    center: .bottomLeading,
-                    startRadius: 20,
-                    endRadius: max(560, h * 0.65)
-                )
-                .offset(x: -90, y: 160)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .compositingGroup()
-            .drawingGroup() // render as one layer to avoid pixel joins
-            .blendMode(.normal)
-        }
-    }
-}
+// Removed BackgroundBlobs; not needed anymore.
 
 struct WheelSelector: View {
     @Binding var selectedIndex: Int
