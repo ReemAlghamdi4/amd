@@ -1,9 +1,17 @@
 import SwiftUI
 
 struct HomeView: View {
-    @StateObject var viewModel = PlaceViewModel()
+    // نستخدم StateObject مع تهيئة مخصصة
+    @StateObject var viewModel: PlaceViewModel
     @State private var selectedCategoryId: UUID?
+    @State private var selectedVideo: VideoItem?
+    
     @Environment(\.dismiss) private var dismiss
+
+    // 👇 دالة Init مخصصة لاستقبال الاسم من الصفحة السابقة
+    init(placeName: String = "مستشفى") {
+        _viewModel = StateObject(wrappedValue: PlaceViewModel(placeName: placeName))
+    }
 
     var body: some View {
         NavigationStack {
@@ -17,36 +25,52 @@ struct HomeView: View {
                             dismiss()
                         }
                         Spacer()
-                        // الأزرار الجديدة (يسار - شكل فقط)
                         HStack(spacing: 10) {
                             CircleButton(icon: "plus") { }
                             CircleButton(icon: "mic") { }
                         }
-                        
-                        
                     }
                     .padding(.horizontal)
                     .padding(.top, 10)
+                    
+                    // العنوان
                     HStack {
-                                            Text(viewModel.place.name)
-                                                .font(.custom("IBMPlexSansArabic-Bold", size: 34))
-                                            Spacer() // يدف النص لليمين
-                    }                    .padding(.leading, 12)
+                        Text(viewModel.place.name)
+                            .font(.custom("IBMPlexSansArabic-Bold", size: 34))
+                        Spacer()
+                    }
+                    .padding(.leading, 12)
 
                     // ب. شريط البحث
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.gray)
                         
-                        TextField("الاذن", text: $viewModel.searchText)
+                        TextField("بحث في \(viewModel.place.name)...", text: $viewModel.searchText)
                             .font(.custom("IBMPlexSansArabic-Regular", size: 16))
                             .textFieldStyle(.plain)
                     }
                     .padding(12)
-                    .background(Color(.gray))
-                    .cornerRadius(17)
+                    .background(Color.gray.opacity(0.15)) // تعديل بسيط للون
+                    .clipShape(RoundedRectangle(cornerRadius: 17))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 17)
+                            .strokeBorder(
+                                LinearGradient(
+                                    stops: [
+                                        .init(color: Color("filter").opacity(0.8), location: 0.0),
+                                        .init(color: Color("filter").opacity(0.2), location: 0.5),
+                                        .init(color: Color("filter"), location: 1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
                     .padding(.horizontal)
                     
+                    // ج. الفلتر
                     if viewModel.searchText.isEmpty {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 12) {
@@ -60,9 +84,8 @@ struct HomeView: View {
                                     }
                                 }
                             }
-                            .glassEffect()
-
                             .padding(.horizontal)
+                     
                         }
                     }
                 }
@@ -74,10 +97,15 @@ struct HomeView: View {
                     ScrollViewReader { proxy in
                         VStack(spacing: 25) {
                             
-                            // 👇 التغيير هنا: نستخدم displayedCategories عشان البحث يشتغل
                             ForEach(viewModel.displayedCategories) { category in
-                                CategoryContainerView(category: category, viewModel: viewModel)
-                                    .id(category.id)
+                                CategoryContainerView(
+                                    category: category,
+                                    viewModel: viewModel,
+                                    onVideoSelect: { video in // ✅ تم توحيد الاسم ليكون onVideoTap
+                                        selectedVideo = video
+                                    }
+                                )
+                                .id(category.id)
                             }
                             
                         }
@@ -100,27 +128,15 @@ struct HomeView: View {
                     selectedCategoryId = viewModel.displayedCategories.first?.id
                 }
             }
-        }
-    }
-}
-
-// --- تصميم الأزرار الدائرية العلوية ---
-struct CircleButton: View {
-    let icon: String
-    var action: () -> Void = {}
-    var body: some View {
-        Button(action: action) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundColor(.white) // اللون السماوي
-                .padding(10)
-                .background(.buttons) // خلفية شفافة
-                .clipShape(Circle())
-                .glassEffect()
+            .navigationBarBackButtonHidden(true)
+            .sheet(item: $selectedVideo) { video in
+                PlayerVideo(video: video, viewModel: viewModel)
+                    .presentationDragIndicator(.visible)
+            }
         }
     }
 }
 
 #Preview {
-    HomeView()
+    HomeView(placeName: "مستشفى")
 }

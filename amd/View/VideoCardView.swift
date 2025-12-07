@@ -27,21 +27,7 @@ struct VideoCardView: View {
             .frame(width: 300, height: 180)
             .clipShape(RoundedRectangle(cornerRadius: 17))
             
-            // 2. زر المفضلة
-            Button(action: {
-                onFavoriteTapped?()
-            }) {
-                Image(systemName: video.isFavorite ? "heart.fill" : "heart")
-                    .font(.system(size: 20))
-                    .foregroundColor(video.isFavorite ? .red : .white)
-                    .padding(8)
-                    .background(.ultraThinMaterial)
-                    .clipShape(Circle())
-            }
-            .padding(10)
-            
-            // 3. العنوان
-           
+             
         }
         .frame(width: 300, height: 180)
         
@@ -63,7 +49,7 @@ struct VideoCardView: View {
         // 2. تجهيز الفيديو أول مرة (بدون تشغيل)
         .onAppear {
             if player == nil {
-                if let url = Bundle.main.url(forResource: video.imageName, withExtension: "mp4") {
+                if let url = Bundle.main.url(forResource: video.imageName, withExtension: "mov") {
                     let newPlayer = AVPlayer(url: url)
                     newPlayer.isMuted = true // كتم الصوت
                     

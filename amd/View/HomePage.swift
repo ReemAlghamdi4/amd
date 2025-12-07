@@ -125,8 +125,10 @@ struct HomePage: View {
             }
             // Navigation destination to HomeView
             .navigationDestination(isPresented: $goToHomeView) {
-                HomeView()
-                    .navigationBarBackButtonHidden(true)
+                let selectedPlaceName = wheelOptions[selectedIndex].label
+                    
+                    HomeView(placeName: selectedPlaceName)
+                        .navigationBarBackButtonHidden(true)
             }
         }
     }
