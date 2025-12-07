@@ -36,7 +36,7 @@ struct HomeView: View {
                                 Image("micc")
                                     .resizable()
                                     .scaledToFit()
-                                    .frame(width: 35, height: 35)
+                                    .frame(width: 38, height: 38)
                                 // التعديل هنا: حركة تكبير وتصغير بسيطة جداً
                                     .scaleEffect(isPulsing ? 1.1 : 0.95)
                                 // التعديل هنا: تغيير الشفافية ليعطي شعور الظهور والاختفاء
