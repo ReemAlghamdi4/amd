@@ -4,7 +4,6 @@
 //
 //  Created by maha althwab on 12/06/1447 AH.
 //
-
 import SwiftUI
 
 // MARK: - توسيع String لإضافة تنسيق مخصص لكلمة "أمد"
@@ -108,7 +107,8 @@ struct OnboardSlide: View {
                 
                 Text(subtitle)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 40)
+                    .frame(maxWidth: 280)           // ← تضييق النص
+                    .padding(.horizontal, 20)
                     .font(.system(size: 17))
             }
             .offset(y: showText ? 0 : 24)
@@ -153,7 +153,7 @@ struct PageIndicator: View {
 // MARK: - ContentView (Onboarding)
 struct ContentView: View {
     @State private var page = 0
-    @State private var goHome = false   // لزر "ابدأ"
+    @State private var goHome = false
 
     var slides: [(String, AttributedString, String)] = [
         ("تواصل",
@@ -176,7 +176,7 @@ struct ContentView: View {
                 
                 VStack {
                     
-                    // زر التخطي
+                    // زر التخطي (تم تعديل المسافة)
                     HStack {
                         if page < slides.count - 1 {
                             Button("تخطي") {
@@ -184,7 +184,7 @@ struct ContentView: View {
                             }
                             .foregroundColor(Color(red: 0.40, green: 0.65, blue: 0.64))
                             .padding(.top, 20)
-                            .padding(.leading, 36)
+                            .padding(.leading, 52)   // ←← التعديل هنا
                         }
                         Spacer()
                     }
@@ -210,7 +210,7 @@ struct ContentView: View {
                         .padding(.bottom, 24)
                     
                     
-                    // ------ زر التالي / ابدأ ------
+                    // زر التالي / ابدأ
                     if page == slides.count - 1 {
 
                         NavigationLink("", destination: HomePage(), isActive: $goHome)
