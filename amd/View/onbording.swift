@@ -202,7 +202,9 @@ struct ContentView: View {
                             .tag(i)
                         }
                     }
+                    #if os(iOS) || os(tvOS) || os(watchOS)
                     .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                    #endif
                     
                     
                     // المؤشر

@@ -149,7 +149,7 @@ struct PlayerVideo: View {
             Spacer()
         }
         .environment(\.layoutDirection, .leftToRight) // السلايدر يحتاج اتجاه انجليزي عشان يضبط، لكن النصوص بنضبطها يدوياً
-        .background(Color(.systemBackground))
+//        .background(Color(.systemBackground))
         // تجهيز المشغل عند فتح الصفحة
         .onAppear {
             setupPlayer()
