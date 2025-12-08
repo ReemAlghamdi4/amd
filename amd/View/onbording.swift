@@ -153,7 +153,7 @@ struct PageIndicator: View {
 // MARK: - ContentView (Onboarding)
 struct ContentView: View {
     @State private var page = 0
-    @State private var goHome = false
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
 
     var slides: [(String, AttributedString, String)] = [
         ("تواصل",
@@ -212,11 +212,9 @@ struct ContentView: View {
                     
                     // زر التالي / ابدأ
                     if page == slides.count - 1 {
-
-                        NavigationLink("", destination: HomePage(), isActive: $goHome)
-
                         Button {
-                            goHome = true
+                            // Mark onboarding as seen. The app root will switch to HomePage.
+                            hasSeenOnboarding = true
                         } label: {
                             Text("ابدأ")
                                 .font(.system(size: 18, weight: .semibold))

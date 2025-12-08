@@ -6,14 +6,16 @@
 //
 
 import Foundation
+import CloudKit
 
 struct VideoItem: Identifiable {
-    let id = UUID()         // معرف فريد يتولد تلقائياً لكل عنصر
-    let description: String
-    let imageName: String   // اسم الصورة أو ملف الفيديو
-    var isFavorite: Bool    // هل هو مفضل؟ (خليناها var عشان تتغير)
+    let id = UUID()
+    let title: String        // 👈 العنوان القصير (يظهر في الكرت)
+    let details: String      // 👈 الوصف الطويل (يظهر تحت الفيديو)
+    let videoURL: URL?
+    var isFavorite: Bool
+    let categoryName: String
 }
-
 struct PlaceCategory: Identifiable {
     let id: UUID // شلنا = UUID() عشان نقدر نتحكم فيه
     let name: String

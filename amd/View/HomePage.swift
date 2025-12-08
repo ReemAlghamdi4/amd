@@ -46,24 +46,24 @@ struct HomePage: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                // Single full-screen background to avoid seams
-                BackgroundBlobs()
+                // Use the exact same background as the onboarding page
+                MovingSoftBackground()
                     .ignoresSafeArea()
 
                 VStack(spacing: 0) {
                     // Top left avatar button
                     HStack {
-                        Button(action: {}) {
-                            ZStack {
-                                Circle()
-                                    .fill(Color.tealButton)
-                                    .frame(width: 36, height: 36)
-                                Text("🌟")
-                                    .font(.system(size: 20))
-                            }
-                        }
-                        .padding(.leading, 20)
-                        .padding(.top, 16)
+//                        Button(action: {}) {
+//                            ZStack {
+//                                Circle()
+//                                    .fill(Color.tealButton)
+//                                    .frame(width: 36, height: 36)
+//                     //           Text("🌟")
+//                                    .font(.system(size: 20))
+//                            }
+//                        }
+//                        .padding(.leading, 36)
+//                        .padding(.top, 16)
 
                         Spacer()
                     }
@@ -99,6 +99,7 @@ struct HomePage: View {
                             .frame(maxWidth: .infinity, alignment: .trailing)
                     }
                     .padding(.horizontal, 30)
+                    .padding(.trailing, 12)
 
                     Spacer()
 

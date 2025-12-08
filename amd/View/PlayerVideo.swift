@@ -54,7 +54,7 @@ struct PlayerVideo: View {
                 Spacer()
                 
                 // عنوان الفيديو (من البيانات)
-                Text(video.description)
+                Text(video.details)
                     .font(.custom("IBMPlexSansArabic-Bold", size: 20))
                     .foregroundColor(.primary)
             }
@@ -137,7 +137,7 @@ struct PlayerVideo: View {
                     .font(.custom("IBMPlexSansArabic-Bold", size: 18))
                 
                 // هنا الوصف الطويل (حالياً ثابت، ممكن تضيف خاصية longDescription للمودل لاحقاً)
-                Text((video.description) )
+                Text((video.details) )
                     .font(.custom("IBMPlexSansArabic-Regular", size: 16))
                     .multilineTextAlignment(.trailing)
                     .foregroundColor(.secondary)
@@ -170,36 +170,43 @@ struct PlayerVideo: View {
     }
     
     // دالة تجهيز الفيديو
-    func setupPlayer() {
-        if let url = Bundle.main.url(forResource: video.imageName, withExtension: "mov") {
-            let newPlayer = AVPlayer(url: url)
-            self.player = newPlayer
-            
-            // جلب مدة الفيديو
-            Task {
-                if let duration = try? await newPlayer.currentItem?.asset.load(.duration) {
-                    self.videoDuration = CMTimeGetSeconds(duration)
+        func setupPlayer() {
+            // 👇 التعديل: نستخدم الرابط المباشر من المودل (لأنه جاي من الكلاود)
+            if let url = video.videoURL {
+                let newPlayer = AVPlayer(url: url)
+                self.player = newPlayer
+                
+                // جلب مدة الفيديو
+                Task {
+                    if let duration = try? await newPlayer.currentItem?.asset.load(.duration) {
+                        self.videoDuration = CMTimeGetSeconds(duration)
+                    }
                 }
+                
+                // مراقبة وقت التشغيل للسلايدر
+                timeObserver = newPlayer.addPeriodicTimeObserver(
+                    forInterval: CMTime(seconds: 0.1, preferredTimescale: 600),
+                    queue: .main
+                ) { time in
+                    self.currentTime = CMTimeGetSeconds(time)
+                }
+                
+                newPlayer.play()
+                isPlaying = true
             }
-            
-            // مراقبة وقت التشغيل للسلايدر
-            timeObserver = newPlayer.addPeriodicTimeObserver(
-                forInterval: CMTime(seconds: 0.1, preferredTimescale: 600),
-                queue: .main
-            ) { time in
-                self.currentTime = CMTimeGetSeconds(time)
-            }
-            
-            newPlayer.play()
-            isPlaying = true
         }
     }
-}
 
-
-#Preview {
-    PlayerVideo(
-        video: VideoItem(description: "تجربة", imageName: "demo1", isFavorite: true),
-        viewModel: PlaceViewModel()
-    )
-}
+    // 👇 تحديث المعاينة لتناسب المودل الجديد
+    #Preview {
+        PlayerVideo(
+            video: VideoItem(
+                title: "تجربة فيديو",
+                details: "هذا نص تجريبي للوصف الطويل يظهر تحت الفيديو.",
+                videoURL: nil, // رابط فارغ للتجربة فقط
+                isFavorite: true,
+                categoryName: "عام"
+            ),
+            viewModel: PlaceViewModel()
+        )
+    }

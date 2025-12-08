@@ -9,9 +9,17 @@ import SwiftUI
 
 @main
 struct amdApp: App {
+    @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
+
     var body: some Scene {
         WindowGroup {
-            HomeView()
+            if hasSeenOnboarding {
+                HomePage() // or HomeView() if you want to skip HomePage too
+                    .navigationBarBackButtonHidden(true)
+            } else {
+                ContentView() // Onboarding screen in onbording.swift
+                    .navigationBarBackButtonHidden(true)
+            }
         }
     }
 }

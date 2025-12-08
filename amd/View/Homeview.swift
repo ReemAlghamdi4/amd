@@ -12,7 +12,6 @@ struct HomeView: View {
     
     @Environment(\.dismiss) private var dismiss
 
-    // 👇 دالة Init مخصصة لاستقبال الاسم من الصفحة السابقة
     init(placeName: String = "مستشفى") {
         _viewModel = StateObject(wrappedValue: PlaceViewModel(placeName: placeName))
     }
@@ -30,7 +29,7 @@ struct HomeView: View {
                         }
                         Spacer()
                         HStack(spacing: 10) {
-                            CcircleButton(icon: "plus") { }
+                           // CcircleButton(icon: "plus") { }
                             ZStack {
                                 // الخلفية المتحركة
                                 Image("micc")

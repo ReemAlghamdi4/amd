@@ -19,7 +19,7 @@ struct VideoCardView: View {
                     VideoPlayer(player: player)
                         .disabled(true) // نمنع لمس الفيديو عشان السكرول
                 } else {
-                    Color(.systemGray)
+                    Color(.systemGray4)
                     Image(systemName: "video.slash")
                         .foregroundColor(.gray)
                 }
@@ -27,7 +27,8 @@ struct VideoCardView: View {
             .frame(width: 300, height: 180)
             .clipShape(RoundedRectangle(cornerRadius: 17))
             
-             
+            // (اختياري) إذا كنت تريدين إضافة طبقة العنوان والقلب هنا كما كانت سابقاً
+            // يمكنك إضافتها في هذا المكان
         }
         .frame(width: 300, height: 180)
         
@@ -46,12 +47,13 @@ struct VideoCardView: View {
             }
         )
         
-        // 2. تجهيز الفيديو أول مرة (بدون تشغيل)
+        // 2. تجهيز الفيديو أول مرة
         .onAppear {
             if player == nil {
-                if let url = Bundle.main.url(forResource: video.imageName, withExtension: "mov") {
+                // 👇 التعديل هنا: نستخدم الرابط المباشر من المودل (CloudKit)
+                if let url = video.videoURL {
                     let newPlayer = AVPlayer(url: url)
-                    newPlayer.isMuted = true // كتم الصوت
+                    newPlayer.isMuted = true // كتم الصوت (للعرض التلقائي)
                     
                     // التكرار (Loop)
                     NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: newPlayer.currentItem, queue: .main) { _ in
@@ -71,30 +73,38 @@ struct VideoCardView: View {
     
     // 👇 دالة الذكاء: تقرر هل نشغل الفيديو ولا لا
     func checkVisibility(midY: CGFloat) {
-//        let screenHeight = UIScreen.main.bounds.height
-//        let screenCenter = screenHeight / 2
+        let screenHeight = UIScreen.main.bounds.height
+        let screenCenter = screenHeight / 2
         
-        // المسافة المسموحة (منطقة الوسط) - مثلاً 150 نقطة فوق وتحت النص
-//        let threshold: CGFloat = 150
+        // المسافة المسموحة (منطقة الوسط) - مثلاً 150 نقطة فوق وتحت المنتصف
+        let threshold: CGFloat = 150
         
-        // هل الكرت قريب من نص الشاشة؟
-//        let isCentered = abs(screenCenter - midY) < threshold
+        // هل الكرت قريب من منتصف الشاشة؟
+        let isCentered = abs(screenCenter - midY) < threshold
         
-//        if isCentered {
+        if isCentered {
+            // إذا كان في الوسط وهو طافي -> شغله
             if !isPlaying {
                 player?.play()
                 isPlaying = true
             }
-//        } else {
+        } else {
+            // إذا بعد عن الوسط وهو يشتغل -> وقفه
             if isPlaying {
                 player?.pause()
                 isPlaying = false
             }
         }
     }
-//}
-
-#Preview {
-    VideoCardView(video: VideoItem(description: "تجرية", imageName: "demo1", isFavorite: false))
 }
 
+#Preview {
+    // تحديث البيانات لتناسب المودل الجديد
+    VideoCardView(video: VideoItem(
+        title: "تجربة",
+        details: "وصف طويل",
+        videoURL: nil,
+        isFavorite: false,
+        categoryName: "عام"
+    ))
+}
