@@ -79,7 +79,7 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
         
         guard isRecording else { return }
         
-        print("Stopping recording...")
+        print("Stopping recording…")
         
         isRecording = false
         isProcessing = true
@@ -145,6 +145,9 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
                         self.finalText = self.realTimeText
                         self.realTimeText = ""
                         self.isProcessing = false
+                        
+                        // Debug
+                        print("Final recognized text:", self.finalText)
                     }
                 }
             }
@@ -159,7 +162,7 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
         }
     }
     
-    // MARK: - Cleanup (Prevents Bugs)
+    // MARK: - Cleanup
     private func cleanup() {
         recognitionTask?.cancel()
         recognitionTask = nil
@@ -177,10 +180,11 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
         simplifiedText = ""
         aiError = nil
         
-        print("Sending text to AI…")
+        print("Sending text to OpenAI API…")
         
-        // NEW: safer log (instead of printing the actual key)
-        print("API Key Loaded:", !APIKeyManager.shared.openAIKey.isEmpty)
+        // Debug API key (safe version)
+        print("API Key exists:", !APIKeyManager.shared.openAIKey.isEmpty)
+        print("First 6 chars:", APIKeyManager.shared.openAIKey.prefix(6))
 
         let url = URL(string: "https://api.openai.com/v1/chat/completions")!
         
@@ -192,18 +196,13 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
         
         let prompt = """
         أريدك أن تعيد كتابة النص التالي بلغة عربية مبسّطة جدًا:
-
         - كلمات قصيرة وواضحة.
         - جمل قصيرة.
         - بدون تفاصيل غير ضرورية.
-        - بدون أي تعقيد لغوي.
-        - مناسبة لشخص لديه ضعف في مهارات القراءة أو شخص أصم يستخدم اللغة العربية المبسطة.
-        - أعطِ المعنى فقط، بدون زيادة أو شرح طويل.
+        - مناسبة لشخص قدراته اللغوية بسيطة.
 
         النص الأصلي:
         \(finalText)
-
-        الناتج النهائي: جملة أو جملتين مبسّطتين فقط.
         """
 
         
@@ -221,11 +220,8 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
         request.allHTTPHeaderFields = headers
         request.httpBody = jsonData
         
-        print("SENDING TO AI:")
-        print("Final text:", finalText)
+        print("Request ready. Sending now…")
         
-        print("API Key exists:", !APIKeyManager.shared.openAIKey.isEmpty)
-
         
         URLSession.shared.dataTask(with: request) { data, response, error in
             
@@ -238,7 +234,14 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
                 return
             }
             
-            guard let data = data else { return }
+            guard let data = data else {
+                print("No data received.")
+                return
+            }
+            
+            // Debug full raw response
+            print("AI RAW RESPONSE:")
+            print(String(data: data, encoding: .utf8) ?? "nil")
             
             do {
                 if let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
@@ -250,6 +253,8 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
                         self.simplifiedText = content
                         self.isAIProcessing = false
                     }
+                    
+                    print("AI simplified text:", content)
                     
                 } else {
                     throw NSError(domain: "", code: -1, userInfo: nil)

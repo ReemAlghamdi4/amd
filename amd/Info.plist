@@ -2,12 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSSiriUsageDescription</key>
-	<string>يستخدم التطبيق خدمات الكلام لتحسين دقة التعرف الصوتي</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>يحتاج التطبيق لاستخدام الميكروفون لتسجيل صوت المتحدث وتحويله إلى نص</string>
-	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>يحتاج التطبيق للوصول إلى ميزة التعرف على الكلام لتحويل صوت المتحدث إلى نص</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>IBMPlexSansArabic-Thin.ttf</string>
