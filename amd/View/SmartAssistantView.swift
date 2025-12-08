@@ -16,6 +16,7 @@ struct SmartAssistantView: View {
     @State private var realTimeText = ""
     @State private var finalText = ""
     
+    ///huhu
     
     // MARK: - Close Button
     var closeButton: some View {
