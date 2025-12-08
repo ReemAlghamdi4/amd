@@ -33,7 +33,6 @@ struct WheelOption: Identifiable {
 }
 
 let wheelOptions: [WheelOption] = [
-    .init(icon: "❤️", label: "المفضلة"),
     .init(icon: "🛒", label: "السوبرماركت"),
     .init(icon: "🚑", label: "مستشفى"),
     .init(icon: "🪑", label: "المواصلات العامة")

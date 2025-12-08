@@ -10,10 +10,12 @@ class PlaceViewModel: ObservableObject {
     let container = CKContainer.default()
     let database = CKContainer.default().publicCloudDatabase
     let favoritesId = UUID()
+    
+    // 👇 مفتاح حفظ المفضلة في الجهاز
+    private let favoritesKey = "UserFavoritesList"
 
     init(placeName: String = "مستشفى") {
         self.place = Place(name: placeName, categories: [])
-        
         fetchVideosFromCloud(placeName: placeName)
     }
     
@@ -29,6 +31,9 @@ class PlaceViewModel: ObservableObject {
             case .success(let matchResults):
                 print("✅ تم العثور على \(matchResults.matchResults.count) فيديو")
                 
+                // 👇 1. نجيب قائمة المفضلة المحفوظة محلياً في جوال المستخدم
+                let savedFavorites = UserDefaults.standard.stringArray(forKey: self.favoritesKey) ?? []
+                
                 var fetchedVideos: [VideoItem] = []
                 
                 for match in matchResults.matchResults {
@@ -37,37 +42,22 @@ class PlaceViewModel: ObservableObject {
                         let category = record["category"] as? String ?? "عام"
                         let details = record["details"] as? String ?? ""
                         
-                        // isFavorite could be Bool or Number in CloudKit. Try both safely.
-                        var isFav = false
-                        if let favBool = record["isFavorite"] as? Bool {
-                            isFav = favBool
-                        } else if let favNum = record["isFavorite"] as? Int64 {
-                            isFav = (favNum == 1)
-                        } else if let favNumInt = record["isFavorite"] as? Int {
-                            isFav = (favNumInt == 1)
-                        }
+                        // 👇 2. نعتمد على الحفظ المحلي لتحديد المفضلة، وليس الكلاود
+                        // لأن الكلاود يعطي قيمة عامة للجميع، بينما المفضلة شخصية
+                        let isFav = savedFavorites.contains(title)
                         
-                        // Read the asset with the correct case-sensitive key: "VideoAsset"
+                        // معالجة الفيديو (نسخ للكاش)
                         var localVideoURL: URL?
-                        if let asset = record["VideoAsset"] as? CKAsset {
+                        // تأكدنا من اسم الحقل "videoAsset" (أول حرف صغير عادة في كلاود كيت إلا لو سميته Capital)
+                        // سأضع احتمالات لضمان العمل
+                        let assetAny = record["videoAsset"] ?? record["VideoAsset"]
+                        
+                        if let asset = assetAny as? CKAsset {
                             let assetURL = asset.fileURL
-                            print("🔗 CKAsset fileURL (raw): \(assetURL?.path ?? "nil")")
                             
                             if let assetURL = assetURL {
-                                // Ensure local persistence: copy to Caches/videos/<recordID>.mov
-                                localVideoURL = self.copyAssetToCaches(assetURL: assetURL, recordID: record.recordID)
-                                if let finalURL = localVideoURL {
-                                    let exists = FileManager.default.fileExists(atPath: finalURL.path)
-                                    let size = (try? FileManager.default.attributesOfItem(atPath: finalURL.path)[.size] as? NSNumber)?.int64Value ?? -1
-                                    print("📁 Local copied URL: \(finalURL.path), exists: \(exists), size: \(size) bytes")
-                                } else {
-                                    print("⚠️ Failed to copy asset to caches for record: \(record.recordID.recordName)")
-                                }
-                            } else {
-                                print("⚠️ CKAsset had nil fileURL for record: \(record.recordID.recordName)")
-                            }
-                        } else {
-                            print("⚠️ لم يتم العثور على الحقل 'VideoAsset' أو ليس CKAsset في السجل: \(record.recordID.recordName)")
+                                // نسخ الملف لمجلد الكاش لضمان بقائه وتشغيله
+                                localVideoURL = self.copyAssetToCaches(assetURL: assetURL, recordID: record.recordID)                            }
                         }
                         
                         let video = VideoItem(
@@ -81,6 +71,7 @@ class PlaceViewModel: ObservableObject {
                     }
                 }
                 
+                // تجميع وترتيب الأقسام
                 let groupedDictionary = Dictionary(grouping: fetchedVideos, by: { $0.categoryName })
                 
                 let newCategories = groupedDictionary.map { (key, videos) -> PlaceCategory in
@@ -100,8 +91,7 @@ class PlaceViewModel: ObservableObject {
         }
     }
     
-    // Copy CKAsset temp file to a stable location inside Caches/videos
-    // Force .mov extension so AVFoundation recognizes the container and avoids -12847 errors.
+    // دالة نسخ الملفات للكاش (كودك الممتاز)
     private func copyAssetToCaches(assetURL: URL, recordID: CKRecord.ID) -> URL? {
         do {
             let caches = try FileManager.default.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
@@ -109,15 +99,15 @@ class PlaceViewModel: ObservableObject {
             if !FileManager.default.fileExists(atPath: videosDir.path) {
                 try FileManager.default.createDirectory(at: videosDir, withIntermediateDirectories: true)
             }
-            // Force .mov since your uploads are MOV files
+            // إجبار الصيغة .mov لتفادي مشاكل AVPlayer
             let dest = videosDir.appendingPathComponent("\(recordID.recordName).mov")
             
-            // If already exists, replace to ensure freshness
+            // إذا الملف موجود، نحذفه ونستبدله لضمان التحديث
             if FileManager.default.fileExists(atPath: dest.path) {
                 try? FileManager.default.removeItem(at: dest)
             }
             
-            // Prefer robust copy: read data then write, to ensure the file is materialized
+            // النسخ الآمن
             let data = try Data(contentsOf: assetURL, options: [.mappedIfSafe])
             try data.write(to: dest, options: [.atomic])
             
@@ -129,13 +119,13 @@ class PlaceViewModel: ObservableObject {
     }
     
     func getIconForCategory(_ name: String) -> String {
-        if name.contains("أذن وانف وحنجره") { return "👃🏻👂🏻" }
+        if name.contains("أذن") { return "👃🏻👂🏻" }
         if name.contains("استقبال") { return "📁" }
         if name.contains("طوارئ") { return "🚨" }
         if name.contains("عام") { return "🩺" }
         if name.contains("اسنان") { return "🦷" }
-
-        return "folder.fill"
+        if name.contains("اسنان") { return "🦷" }
+        return "🥼"
     }
 
     var favoriteVideos: [VideoItem] {
@@ -143,7 +133,7 @@ class PlaceViewModel: ObservableObject {
     }
     
     var allCategories: [PlaceCategory] {
-        let favCategory = PlaceCategory(id: favoritesId, name: "المفضلة", icon: "heart.fill", items: favoriteVideos)
+        let favCategory = PlaceCategory(id: favoritesId, name: "المفضلة", icon: "❤️", items: favoriteVideos)
         return (!favoriteVideos.isEmpty ? [favCategory] : []) + place.categories
     }
     
@@ -161,13 +151,36 @@ class PlaceViewModel: ObservableObject {
         }
     }
 
+    // 👇 دالة التبديل مع الحفظ في الذاكرة
     func toggleFavorite(for videoId: UUID) {
         for (i, cat) in place.categories.enumerated() {
             if let j = cat.items.firstIndex(where: { $0.id == videoId }) {
+                // عكس الحالة في الذاكرة الحالية
                 place.categories[i].items[j].isFavorite.toggle()
+                
+                let video = place.categories[i].items[j]
+                
+                // 👇 حفظ التغيير في ذاكرة الجهاز الدائمة
+                updateLocalFavorites(videoTitle: video.title, isFavorite: video.isFavorite)
+                
                 objectWillChange.send()
                 return
             }
         }
+    }
+    
+    // 👇 دالة مساعدة لإدارة UserDefaults
+    private func updateLocalFavorites(videoTitle: String, isFavorite: Bool) {
+        var savedFavorites = UserDefaults.standard.stringArray(forKey: favoritesKey) ?? []
+        
+        if isFavorite {
+            if !savedFavorites.contains(videoTitle) {
+                savedFavorites.append(videoTitle)
+            }
+        } else {
+            savedFavorites.removeAll { $0 == videoTitle }
+        }
+        
+        UserDefaults.standard.set(savedFavorites, forKey: favoritesKey)
     }
 }
