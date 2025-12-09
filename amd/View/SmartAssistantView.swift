@@ -4,23 +4,21 @@
 //
 //  Created by reema aljohani on 12/2/25.
 
+
 import SwiftUI
 
 struct SmartAssistantView: View {
     
     @Environment(\.layoutDirection) var layoutDirection
     @Environment(\.dismiss) private var dismiss
-
-    @State private var isRecording = false
-    @State private var isProcessing = false
-    @State private var realTimeText = ""
-    @State private var finalText = ""
+    
+    @StateObject private var viewModel = SmartAssistantViewModel()
     
     
     // MARK: - Close Button
     var closeButton: some View {
         Button(action: {
-            dismiss()   
+            dismiss()
         }) {
             Image(systemName: "xmark")
                 .font(.system(size: 22, weight: .semibold))
@@ -32,39 +30,30 @@ struct SmartAssistantView: View {
                 )
         }
     }
-        
+    
+    
     var body: some View {
         ZStack {
             
-            /*// MARK: - Background Gradient
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color(red: 191/255, green: 236/255, blue: 232/255),
-                    .white
-                ]),
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()*/
+            // MARK: Background
+            MovingSoftBackground()
+                .ignoresSafeArea()
             
             
             VStack(spacing: 0) {
                 
                 // MARK: - HEADER
                 ZStack {
-                    
                     Text(NSLocalizedString("assistant_title", comment: ""))
                         .font(.custom("IBMPlexSansArabic-Bold", size: 34))
                         .foregroundColor(Color(red: 255/255, green: 145/255, blue: 77/255))
                         .padding(.top, 60)
                     
-                    
-                    // X Button —  RTL/LTR
                     HStack {
                         if layoutDirection == .rightToLeft {
                             Spacer()
                             closeButton
-                                .padding(.trailing, 20)
+                                .padding(.trailing, 50)
                                 .padding(.top, -50)
                         } else {
                             closeButton
@@ -74,53 +63,77 @@ struct SmartAssistantView: View {
                         }
                     }
                 }
-                .padding(.top, 1)
+                .padding(.top, 2)
                 
                 
-                
-                // MARK: - TEXT BLOCK (CENTERED)
+                // MARK: - TEXT BLOCK
                 VStack {
-                    
                     Spacer()
-                    
+
                     Group {
-                        if isProcessing {
+
+                        if viewModel.isProcessing {
                             Text(NSLocalizedString("processing_text", comment: ""))
                                 .foregroundColor(.black)
-                            
-                        } else if !finalText.isEmpty {
-                            Text(finalText)
+
+                        } else if viewModel.isAIProcessing {
+                            Text("جاري تبسيط النص…")
+                                .foregroundColor(.gray)
+
+                        } else if !viewModel.simplifiedText.isEmpty {
+                            VStack(spacing: 12) {
+                                // النص الأصلي
+                                Text(viewModel.finalText)
+                                    .foregroundColor(.black)
+
+                                // النص المبسّط
+                                Text(viewModel.simplifiedText)
+                                    .foregroundColor(Color(red: 0/255, green: 122/255, blue: 130/255))
+                                    .font(.custom("IBMPlexSansArabic-Regular", size: 23))
+                                    .padding(.top, 10)
+                            }
+
+                        } else if !viewModel.finalText.isEmpty {
+                            Text(viewModel.finalText)
                                 .foregroundColor(.black)
-                            
-                        } else if isRecording {
-                            Text(realTimeText.isEmpty ?
-                                 NSLocalizedString("recording_placeholder", comment: "") :
-                                 realTimeText
+
+                        } else if viewModel.isRecording {
+                            Text(
+                                viewModel.realTimeText.isEmpty ?
+                                NSLocalizedString("recording_placeholder", comment: "") :
+                                viewModel.realTimeText
                             )
                             .foregroundColor(.gray.opacity(0.55))
-                            
+
                         } else {
                             Text(NSLocalizedString("show_other_person_text", comment: ""))
                                 .foregroundColor(.black)
                         }
                     }
-                    .font(.custom("IBMPlexSansArabic-semibold", size: 25))                    .multilineTextAlignment(.center)
+                    .font(.custom("IBMPlexSansArabic-semibold", size: 25))
+                    .multilineTextAlignment(.center)
                     .padding(.horizontal, 36)
                     .padding(.top, 60)
-                    
+
                     Spacer()
                 }
-                
-                
-                // MARK: - RECORDING BUTTON (BOTTOM)
-                RecordingButton(isRecording: $isRecording, isProcessing: $isProcessing)
-                    .frame(width: 255, height: 255)
-                    .padding(.bottom, -30)
+
+                // MARK: - RECORDING BUTTON
+                RecordingButton(
+                    isRecording: $viewModel.isRecording,
+                    isProcessing: $viewModel.isProcessing
+                )
+                .frame(width: 255, height: 255)
+                .padding(.bottom, -30)
             }
         }
-        .background(
-            MovingSoftBackground()
-        )
+        .onChange(of: viewModel.isRecording) { newValue in
+            if newValue {
+                viewModel.startRecording()
+            } else {
+                viewModel.stopRecording()
+            }
+        }
     }
 }
 

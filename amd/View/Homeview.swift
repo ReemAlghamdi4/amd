@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeView: View {
+    @State private var showSmartAssistant = false
     // نستخدم StateObject مع تهيئة مخصصة
     @StateObject var viewModel: PlaceViewModel
     @State private var selectedCategoryId: UUID?
@@ -47,7 +48,9 @@ struct HomeView: View {
                                         }
                                     }
                                 
-                                CcircleButton(icon: "mic") { }
+                                CcircleButton(icon: "mic") {
+                                    showSmartAssistant = true
+                                }
                             }
                             
                             
@@ -156,6 +159,10 @@ struct HomeView: View {
                     .presentationDragIndicator(.visible)
             }
         }
+        .fullScreenCover(isPresented: $showSmartAssistant) {
+            SmartAssistantView()
+        }
+
     }
 }
 
