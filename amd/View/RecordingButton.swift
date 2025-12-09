@@ -51,14 +51,18 @@ struct RecordingButton: View {
         .contentShape(Rectangle())
         .onTapGesture {
             guard !isProcessing else { return }
-            isRecording.toggle()
-            
-            if isRecording {
+
+            if !isRecording {
+                // Start recording safely
+                isRecording = true
                 startAnimations()
             } else {
+                // Stop recording safely
+                isRecording = false
                 resetAnimations()
             }
         }
+
     }
     
     
@@ -98,4 +102,3 @@ struct RecordingButton_Previews: PreviewProvider {
         .padding()
     }
 }
-
