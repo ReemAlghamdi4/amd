@@ -3,7 +3,7 @@
 //  amdme
 //
 //  Created by reema aljohani on 12/2/25.
-
+//
 
 import SwiftUI
 
@@ -18,6 +18,7 @@ struct SmartAssistantView: View {
     // MARK: - Close Button
     var closeButton: some View {
         Button(action: {
+            viewModel.stopAll()
             dismiss()
         }) {
             Image(systemName: "xmark")
@@ -82,11 +83,9 @@ struct SmartAssistantView: View {
 
                         } else if !viewModel.simplifiedText.isEmpty {
                             VStack(spacing: 12) {
-                                // النص الأصلي
                                 Text(viewModel.finalText)
                                     .foregroundColor(.black)
 
-                                // النص المبسّط
                                 Text(viewModel.simplifiedText)
                                     .foregroundColor(Color(red: 0/255, green: 122/255, blue: 130/255))
                                     .font(.custom("IBMPlexSansArabic-Regular", size: 23))
@@ -125,14 +124,20 @@ struct SmartAssistantView: View {
                 )
                 .frame(width: 255, height: 255)
                 .padding(.bottom, -30)
+                .onTapGesture {
+                    // ✔ زِر التسجيل هو المتحكم الوحيد
+                    if viewModel.isRecording {
+                        viewModel.stopRecording()
+                    } else {
+                        viewModel.startRecording()
+                    }
+                }
             }
         }
-        .onChange(of: viewModel.isRecording) { newValue in
-            if newValue {
-                viewModel.startRecording()
-            } else {
-                viewModel.stopRecording()
-            }
+
+        // MARK: - Cleanup when leaving the screen
+        .onDisappear {
+            viewModel.stopAll()
         }
     }
 }
