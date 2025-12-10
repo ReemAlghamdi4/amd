@@ -277,8 +277,55 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
 
             guard let data = data else { return }
 
-            print("RAW AI Response:")
-            print(String(data: data, encoding: .utf8) ?? "nil")
+            do {
+                // Parse JSON safely
+                guard
+                    let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+                else {
+                    throw NSError(domain: "Invalid JSON", code: 0)
+                }
+
+                // 1) check for OpenAI error object
+                if let err = json["error"] as? [String: Any],
+                   let message = err["message"] as? String {
+                    DispatchQueue.main.async {
+                        self.aiError = "خطأ من OpenAI: \(message)"
+                        self.isAIProcessing = false
+                    }
+                    print("OpenAI Error:", message)
+                    return
+                }
+
+                // 2) Safe navigation for choices
+                guard
+                    let choices = json["choices"] as? [[String: Any]],
+                    let first = choices.first,
+                    let message = first["message"] as? [String: Any],
+                    let content = message["content"] as? String
+                else {
+                    DispatchQueue.main.async {
+                        self.aiError = "فشل التبسيط: استجابة غير متوقعة من OpenAI"
+                        self.isAIProcessing = false
+                    }
+                    print("Unexpected structure inside choices")
+                    print("FULL JSON:", json)
+                    return
+                }
+
+                // 3) Success
+                DispatchQueue.main.async {
+                    self.simplifiedText = content
+                    self.isAIProcessing = false
+                }
+
+            } catch {
+                print("JSON Parse Error:", error.localizedDescription)
+                DispatchQueue.main.async {
+                    self.aiError = "خطأ في قراءة الرد من OpenAI"
+                    self.isAIProcessing = false
+                }
+            }
+
 
             do {
                 let json = try JSONSerialization.jsonObject(with: data) as? [String: Any]

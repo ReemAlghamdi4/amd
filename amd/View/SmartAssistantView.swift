@@ -70,32 +70,32 @@ struct SmartAssistantView: View {
                 // MARK: - TEXT BLOCK
                 VStack {
                     Spacer()
-
+                    
                     Group {
-
+                        
                         if viewModel.isProcessing {
                             Text(NSLocalizedString("processing_text", comment: ""))
                                 .foregroundColor(.black)
-
+                            
                         } else if viewModel.isAIProcessing {
                             Text("جاري تبسيط النص…")
                                 .foregroundColor(.gray)
-
+                            
                         } else if !viewModel.simplifiedText.isEmpty {
                             VStack(spacing: 12) {
                                 Text(viewModel.finalText)
                                     .foregroundColor(.black)
-
+                                
                                 Text(viewModel.simplifiedText)
                                     .foregroundColor(Color(red: 0/255, green: 122/255, blue: 130/255))
                                     .font(.custom("IBMPlexSansArabic-Regular", size: 23))
                                     .padding(.top, 10)
                             }
-
+                            
                         } else if !viewModel.finalText.isEmpty {
                             Text(viewModel.finalText)
                                 .foregroundColor(.black)
-
+                            
                         } else if viewModel.isRecording {
                             Text(
                                 viewModel.realTimeText.isEmpty ?
@@ -103,7 +103,7 @@ struct SmartAssistantView: View {
                                 viewModel.realTimeText
                             )
                             .foregroundColor(.gray.opacity(0.55))
-
+                            
                         } else {
                             Text(NSLocalizedString("show_other_person_text", comment: ""))
                                 .foregroundColor(.black)
@@ -113,36 +113,36 @@ struct SmartAssistantView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 36)
                     .padding(.top, 60)
-
+                    
                     Spacer()
                 }
-
+                
+                
                 // MARK: - RECORDING BUTTON
                 RecordingButton(
                     isRecording: $viewModel.isRecording,
-                    isProcessing: $viewModel.isProcessing
+                    isProcessing: $viewModel.isProcessing,
+                    onTap: {
+                        if viewModel.isRecording {
+                            print(" [UI] Stop recording tapped")
+                            viewModel.stopRecording()
+                        } else {
+                            print(" [UI] Start recording tapped")
+                            viewModel.startRecording()
+                        }
+                    }
                 )
                 .frame(width: 255, height: 255)
                 .padding(.bottom, -30)
-                .onTapGesture {
-                    // ✔ زِر التسجيل هو المتحكم الوحيد
-                    if viewModel.isRecording {
-                        viewModel.stopRecording()
-                    } else {
-                        viewModel.startRecording()
-                    }
-                }
+                
             }
-        }
-
-        // MARK: - Cleanup when leaving the screen
-        .onDisappear {
-            viewModel.stopAll()
+            // MARK: - Cleanup when leaving the screen
+            .onDisappear {
+                viewModel.stopAll()
+            }
         }
     }
 }
-
-
 
 // MARK: - Preview
 struct SmartAssistantView_Previews: PreviewProvider {
