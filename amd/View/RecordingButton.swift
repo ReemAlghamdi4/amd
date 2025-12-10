@@ -11,6 +11,9 @@ struct RecordingButton: View {
     @Binding var isRecording: Bool
     @Binding var isProcessing: Bool
     
+    // 👇 جديد: الكولجر اللي يناديه الزر لما ينضغط
+    var onTap: () -> Void
+    
     @State private var scale1: CGFloat = 1.0
     @State private var scale2: CGFloat = 1.0
     @State private var scale3: CGFloat = 1.0
@@ -18,7 +21,7 @@ struct RecordingButton: View {
     var body: some View {
         ZStack {
             
-            // MARK: - Blobs 
+            // MARK: - Blobs
             Image("1")
                 .resizable()
                 .scaledToFit()
@@ -49,20 +52,19 @@ struct RecordingButton: View {
             }
         }
         .contentShape(Rectangle())
+        // 👇 الزر ما يغيّر الـ state، بس ينادي الكولجر
         .onTapGesture {
             guard !isProcessing else { return }
-
-            if !isRecording {
-                // Start recording safely
-                isRecording = true
+            onTap()
+        }
+        // 👇 الأنيميشن يمشي على حسب تغيّر isRecording من الفيو مودل
+        .onChange(of: isRecording) { newValue in
+            if newValue {
                 startAnimations()
             } else {
-                // Stop recording safely
-                isRecording = false
                 resetAnimations()
             }
         }
-
     }
     
     
@@ -94,7 +96,8 @@ struct RecordingButton_Previews: PreviewProvider {
             Color.white
             RecordingButton(
                 isRecording: .constant(false),
-                isProcessing: .constant(false)
+                isProcessing: .constant(false),
+                onTap: {} // 🟢 
             )
             .frame(width: 220, height: 220)
         }
