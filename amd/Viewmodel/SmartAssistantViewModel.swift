@@ -88,6 +88,13 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
         startRecognitionTask()
 
         print("Recording ACTIVE")
+        
+        // Force trigger animation refresh
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            self.isRecording = false
+            self.isRecording = true
+        }
+
     }
 
 
@@ -102,10 +109,9 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
 
         audioEngine.stop()
         audioEngine.inputNode.removeTap(onBus: 0)
-        request.endAudio()      // <-- مهم جدًا
+        request.endAudio()
 
 
-        // النص النهائي سيأتي داخل result.isFinal في startRecognitionTask
     }
 
 
@@ -167,7 +173,6 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
                     self.realTimeText = result.bestTranscription.formattedString
                 }
 
-                // FINAL RESULT — WE PROCESS HERE
                 if result.isFinal {
                     DispatchQueue.main.async {
                         self.finalText = result.bestTranscription.formattedString
@@ -183,7 +188,6 @@ class SmartAssistantViewModel: NSObject, ObservableObject {
                 }
             }
 
-            // Error
             if let error = error {
                 print("Recognition error:", error.localizedDescription)
                 DispatchQueue.main.async {

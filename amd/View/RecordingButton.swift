@@ -7,101 +7,83 @@
 import SwiftUI
 
 struct RecordingButton: View {
-    
+
     @Binding var isRecording: Bool
     @Binding var isProcessing: Bool
-    
-    // 👇 جديد: الكولجر اللي يناديه الزر لما ينضغط
     var onTap: () -> Void
-    
+
     @State private var scale1: CGFloat = 1.0
     @State private var scale2: CGFloat = 1.0
     @State private var scale3: CGFloat = 1.0
-    
+
     var body: some View {
         ZStack {
-            
-            // MARK: - Blobs
+
+            // MARK: - Blobs (Always Visible)
             Image("1")
                 .resizable()
                 .scaledToFit()
-                .opacity(0.55)
-                .scaleEffect(1.0 * scale1)
+                .opacity(0.50)
+                .scaleEffect(scale1)
 
             Image("2")
                 .resizable()
                 .scaledToFit()
-                .opacity(0.40)
-                .scaleEffect(0.96 * scale2)
+                .opacity(0.35)
+                .scaleEffect(scale2)
 
             Image("3")
                 .resizable()
                 .scaledToFit()
-                .opacity(0.34)
-                .scaleEffect(0.92 * scale3)
-            
-            // MARK: - Mic / Spinner
-            if isProcessing {
-                ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                    .scaleEffect(1.5)
-            } else {
-                Image(systemName: "mic.fill")
-                    .font(.system(size: 50, weight: .medium))
-                    .foregroundColor(.white)
+                .opacity(0.30)
+                .scaleEffect(scale3)
+
+
+            // MARK: - Mic or Spinner
+            Group {
+                if isProcessing {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .scaleEffect(2.0)
+                } else {
+                    Image(systemName: "mic.fill")
+                        .font(.system(size: 50, weight: .medium))
+                        .foregroundColor(.white)
+                }
             }
+            .animation(.easeInOut(duration: 0.15), value: isProcessing)
+
         }
         .contentShape(Rectangle())
-        // 👇 الزر ما يغيّر الـ state، بس ينادي الكولجر
         .onTapGesture {
             guard !isProcessing else { return }
             onTap()
         }
-        // 👇 الأنيميشن يمشي على حسب تغيّر isRecording من الفيو مودل
         .onChange(of: isRecording) { newValue in
+            if newValue { startAnimations() }
+            else { resetAnimations() }
+        }
+        .onChange(of: isProcessing) { newValue in
             if newValue {
-                startAnimations()
-            } else {
                 resetAnimations()
+            } else if isRecording {
+                startAnimations()
             }
         }
     }
-    
-    
+
     // MARK: - Animations
     private func startAnimations() {
-        withAnimation(.easeInOut(duration: 2.3).repeatForever()) {
-            scale1 = 1.06
-        }
-        withAnimation(.easeInOut(duration: 2.8).repeatForever().delay(0.2)) {
-            scale2 = 1.10
-        }
-        withAnimation(.easeInOut(duration: 3.2).repeatForever().delay(0.35)) {
-            scale3 = 1.14
-        }
+        withAnimation(.easeInOut(duration: 2.3).repeatForever()) { scale1 = 1.08 }
+        withAnimation(.easeInOut(duration: 2.8).repeatForever().delay(0.2)) { scale2 = 1.12 }
+        withAnimation(.easeInOut(duration: 3.2).repeatForever().delay(0.35)) { scale3 = 1.16 }
     }
-    
+
     private func resetAnimations() {
-        withAnimation(.easeInOut(duration: 0.25)) {
+        withAnimation(.easeInOut(duration: 0.2)) {
             scale1 = 1.0
             scale2 = 1.0
             scale3 = 1.0
         }
-    }
-}
-
-struct RecordingButton_Previews: PreviewProvider {
-    static var previews: some View {
-        ZStack {
-            Color.white
-            RecordingButton(
-                isRecording: .constant(false),
-                isProcessing: .constant(false),
-                onTap: {} // 🟢 
-            )
-            .frame(width: 220, height: 220)
-        }
-        .previewLayout(.sizeThatFits)
-        .padding()
     }
 }

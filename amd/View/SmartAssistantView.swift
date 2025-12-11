@@ -45,11 +45,11 @@ struct SmartAssistantView: View {
                 
                 // MARK: - HEADER
                 ZStack {
-                    Text(NSLocalizedString("assistant_title", comment: ""))
+                    Text(LocalizedStringKey("assistant_title"))
                         .font(.custom("IBMPlexSansArabic-Bold", size: 34))
                         .foregroundColor(Color(red: 255/255, green: 145/255, blue: 77/255))
                         .padding(.top, 60)
-                    
+
                     HStack {
                         if layoutDirection == .rightToLeft {
                             Spacer()
@@ -74,23 +74,24 @@ struct SmartAssistantView: View {
                     Group {
                         
                         if viewModel.isProcessing {
-                            Text(NSLocalizedString("processing_text", comment: ""))
+                            Text(LocalizedStringKey("processing_text"))
                                 .foregroundColor(.black)
                             
                         } else if viewModel.isAIProcessing {
-                            Text("جاري تبسيط النص…")
+                            Text(LocalizedStringKey("ai_processing_text"))
                                 .foregroundColor(.gray)
                             
                         } else if !viewModel.simplifiedText.isEmpty {
-                            VStack(spacing: 12) {
-                                Text(viewModel.finalText)
-                                    .foregroundColor(.black)
-                                
+                            
+                            ScrollView(showsIndicators: false) {
                                 Text(viewModel.simplifiedText)
-                                    .foregroundColor(Color(red: 0/255, green: 122/255, blue: 130/255))
-                                    .font(.custom("IBMPlexSansArabic-Regular", size: 23))
+                                    .foregroundColor(.black)
+                                    .font(.custom("IBMPlexSansArabic-Bold", size: 26))
+                                    .multilineTextAlignment(.center)
+                                    .padding(.horizontal, 20)
                                     .padding(.top, 10)
                             }
+                            .frame(maxHeight: UIScreen.main.bounds.height * 0.40)
                             
                         } else if !viewModel.finalText.isEmpty {
                             Text(viewModel.finalText)
@@ -99,13 +100,13 @@ struct SmartAssistantView: View {
                         } else if viewModel.isRecording {
                             Text(
                                 viewModel.realTimeText.isEmpty ?
-                                NSLocalizedString("recording_placeholder", comment: "") :
-                                viewModel.realTimeText
+                                LocalizedStringKey("recording_placeholder") :
+                                LocalizedStringKey(viewModel.realTimeText)
                             )
                             .foregroundColor(.gray.opacity(0.55))
                             
                         } else {
-                            Text(NSLocalizedString("show_other_person_text", comment: ""))
+                            Text(LocalizedStringKey("show_other_person_text"))
                                 .foregroundColor(.black)
                         }
                     }
@@ -116,12 +117,12 @@ struct SmartAssistantView: View {
                     
                     Spacer()
                 }
-                
+
                 
                 // MARK: - RECORDING BUTTON
                 RecordingButton(
                     isRecording: $viewModel.isRecording,
-                    isProcessing: $viewModel.isProcessing,
+                    isProcessing: $viewModel.isAIProcessing,
                     onTap: {
                         if viewModel.isRecording {
                             print(" [UI] Stop recording tapped")
@@ -136,11 +137,27 @@ struct SmartAssistantView: View {
                 .padding(.bottom, -30)
                 
             }
-            // MARK: - Cleanup when leaving the screen
             .onDisappear {
                 viewModel.stopAll()
             }
         }
+        
+        
+        // MARK: -  HAPTICS
+        .onChange(of: viewModel.isRecording) { newValue in
+            
+            if newValue == true {
+                // بداية
+                let start = UINotificationFeedbackGenerator()
+                start.notificationOccurred(.success)
+                
+            } else {
+                // نهاية
+                let stop = UINotificationFeedbackGenerator()
+                stop.notificationOccurred(.error)
+            }
+        }
+
     }
 }
 
