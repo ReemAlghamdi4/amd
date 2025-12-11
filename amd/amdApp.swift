@@ -11,7 +11,7 @@ import SwiftUI
 struct amdApp: App {
     
     
-   /* @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
+@AppStorage("hasSeenOnboarding") private var hasSeenOnboarding: Bool = false
     
     var body: some Scene {
         WindowGroup {
@@ -24,7 +24,7 @@ struct amdApp: App {
             }
         }
     }
-}*/
+
     
     /* var body: some Scene {
      WindowGroup {
@@ -37,11 +37,11 @@ struct amdApp: App {
      }
      }
      */
-    
-    var body: some Scene {
-        WindowGroup {
-    SmartAssistantView()
-        }
-    }
+//    
+//    var body: some Scene {
+//        WindowGroup {
+//    SmartAssistantView()
+//        }
+//    }
 }
 
